@@ -1,28 +1,21 @@
--- Function to roast a random player, excluding yourself
+-- Function to roast a random player in the game, excluding yourself
 local function roastRandomPlayer()
-    -- Get the local player
-    local player = game.Players.LocalPlayer
-
     -- Get all players in the game
-    local players = game.Players:GetPlayers()
-
-    -- Remove the local player from the list
+    local players = game:GetService("Players"):GetPlayers()
+    
+    -- Remove yourself from the list of players
+    local player = game:GetService("Players").LocalPlayer
     for i, p in ipairs(players) do
         if p == player then
             table.remove(players, i)
             break
         end
     end
+    
+    -- Select a random player from the remaining list
+    local randomIndex = math.random(1, #players)
+    local randomPlayer = players[randomIndex]
 
-    -- Choose a random player from the remaining list
-    local randomPlayer = players[math.random(1, #players)]
-
-    -- Roast the random player
-    roastPlayer(randomPlayer.Name)
-end
-
--- Function to roast a player
-local function roastPlayer(playerName)
     -- Define the request body
     local body = {
         model = "gpt-3.5-turbo",
@@ -33,7 +26,7 @@ local function roastPlayer(playerName)
             },
             {
                 role = "user",
-                content = "Roast " .. playerName  -- Roast the specific player
+                content = "Roast " .. randomPlayer.Name  -- Roast the random player
             }
         },
         temperature = 0.7,  -- Adjusted for more varied responses
@@ -77,5 +70,5 @@ local function roastPlayer(playerName)
     game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastMessage, "All")
 end
 
--- Example usage: roast a random player, excluding yourself
+-- Example usage: roast a random player in the game
 roastRandomPlayer()
