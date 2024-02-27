@@ -1,6 +1,12 @@
--- Define the base64 encode and decode functions
-local base64_encode = fluxus.crypt.base64.encode
-local base64_decode = fluxus.crypt.base64.decode
+-- Function to encode a string using base64
+local function base64_encode(str)
+    return fluxus.crypt.base64.encode(str)
+end
+
+-- Function to decode a base64 encoded string
+local function base64_decode(str)
+    return fluxus.crypt.base64.decode(str)
+end
 
 -- Define the encoded API key
 local encodedApiKey = "c2stYU1rUGFoN29TaUx5ODlXQnJXVzdUM0Jsa2ZKaXo2ZU1GcGtyY3JTU0N5b29FcnNzQ3lvb0V6Yw=="
