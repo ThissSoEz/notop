@@ -1,50 +1,141 @@
--- Encoding and decoding functions
-local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-
-function encodeBase64(input)
-    local encoded = ''
-    for i = 1, #input, 3 do
-        local byte1, byte2, byte3 = string.byte(input, i, i + 2)
-        local char1 = byte1 >> 2
-        local char2 = ((byte1 & 0x03) << 4) | (byte2 >> 4)
-        local char3 = ((byte2 & 0x0F) << 2) | (byte3 >> 6)
-        local char4 = byte3 & 0x3F
-
-        encoded = encoded ..
-                  b:sub(char1 + 1, char1 + 1) ..
-                  b:sub(char2 + 1, char2 + 1) ..
-                  (byte2 and b:sub(char3 + 1, char3 + 1) or '=') ..
-                  (byte3 and b:sub(char4 + 1, char4 + 1) or '=')
+-- Simple encoding function
+local function encodeApiKey(apiKey)
+    local encodedKey = ""
+    for i = 1, #apiKey do
+        local char = string.byte(apiKey, i)
+        encodedKey = encodedKey .. string.char(char + 1)
     end
-    return encoded
+    return encodedKey
 end
 
-function decodeBase64(input)
-    local decoded = ''
-    input = input:gsub('[^' .. b .. '=]', '')
-
-    for i = 1, #input, 4 do
-        local block = input:sub(i, i + 3)
-        local char1, char2, char3, char4 = block:match('(.)(.)(.)(.)')
-
-        local byte1 = (b:find(char1) - 1) << 2 | (b:find(char2) - 1) >> 4
-        local byte2 = ((b:find(char2) - 1) & 0x0F) << 4 | ((b:find(char3) or 0) - 1) >> 2
-        local byte3 = ((b:find(char3) or 0) & 0x03) << 6 | ((b:find(char4) or 0) - 1)
-
-        decoded = decoded .. string.char(byte1)
-        if char3 ~= '=' then decoded = decoded .. string.char(byte2) end
-        if char4 ~= '=' then decoded = decoded .. string.char(byte3) end
+-- Simple decoding function
+local function decodeApiKey(encodedKey)
+    local decodedKey = ""
+    for i = 1, #encodedKey do
+        local char = string.byte(encodedKey, i)
+        decodedKey = decodedKey .. string.char(char - 1)
     end
-
-    return decoded
+    return decodedKey
 end
 
--- Example usage
-local originalString = "Hello, World!"
-print("Original String:", originalString)
+-- Define the encoded API key
+local encodedApiKey = "tl!bN!qbka&rlmjcm!pN!FztKw8pqNzaKmfg"
 
-local encodedString = encodeBase64(originalString)
-print("Encoded String:", encodedString)
+-- Decode the API key
+local apiKey = decodeApiKey(encodedApiKey)
 
-local decodedString = decodeBase64(encodedString)
-print("Decoded String:", decodedString)
+-- Define the distance threshold (in studs)
+local distanceThreshold = 10
+
+-- Reference to the Carpet part
+local carpet = workspace:GetChildren()[17].Carpet
+
+-- Function to calculate the distance between a part and a player
+local function getDistance(part, player)
+    local partPosition = part.Position
+    local playerCharacter = player.Character
+    local playerPosition = playerCharacter and playerCharacter.PrimaryPart and playerCharacter.PrimaryPart.Position
+    if not playerPosition then
+        return math.huge
+    end
+    return (partPosition - playerPosition).magnitude
+end
+
+-- Function to send a custom message to the server
+local function sendCustomMessage(message)
+    local args = {
+        [1] = "Update",
+        [2] = {
+            ["DescriptionText"] = message,
+            ["ImageId"] = 0
+        }
+    }
+
+    game:GetService("ReplicatedStorage"):WaitForChild("CustomiseBooth"):FireServer(unpack(args))
+end
+
+-- Function to generate a roast using OpenAI
+local function generateRoast(playerName)
+    -- Define the request body
+    local body = {
+        model = "gpt-3.5-turbo",
+        messages = {
+            {
+                role = "system",
+                content = "You are Marv, a chatbot that reluctantly answers questions with sarcastic responses."
+            },
+            {
+                role = "user",
+                content = "Roast " .. playerName
+            }
+        },
+        temperature = 0.5,
+        max_tokens = 256,
+        top_p = 1,
+        frequency_penalty = 0,
+        presence_penalty = 0
+    }
+
+    -- Encode the body to JSON
+    local HttpService = game:GetService("HttpService")
+    local bodyJson = HttpService:JSONEncode(body)
+
+    -- Define the headers with the API key
+    local headers = {
+        ["Content-Type"] = "application/json",
+        ["Authorization"] = "Bearer " .. apiKey
+    }
+
+    -- Send the request and store the response
+    local response = request({
+        Url = "https://api.openai.com/v1/chat/completions",
+        Method = "POST",
+        Headers = headers,
+        Body = bodyJson
+    })
+
+    -- Decode the response content from JSON
+    local responseData = HttpService:JSONDecode(response.Body)
+
+    -- Access the choices array in the response
+    local choices = responseData.choices
+
+    -- Extract and return the content of the first message
+    if choices[1] then
+        return choices[1].message.content
+    else
+        return "Failed to generate roast."
+    end
+end
+
+-- Function to refresh the player detection
+local function refreshDetection()
+    -- Clear previous player detections
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("TextLabel") and obj.Name == "PlayerDetection" then
+            obj:Destroy()
+        end
+    end
+
+    -- Get a list of all players in the game
+    local players = game.Players:GetPlayers()
+
+    -- Iterate over each player
+    for _, player in ipairs(players) do
+        -- Calculate the distance between the Carpet and the player
+        local distance = getDistance(carpet, player)
+
+        -- Check if the distance is within the threshold
+        if distance <= distanceThreshold then
+            -- Generate a roast for the player
+            local roastMessage = generateRoast(player.Name)
+            -- Send the roast message to the server
+            sendCustomMessage(roastMessage)
+        end
+    end
+end
+
+-- Main loop to continuously refresh the player detection
+while wait(1) do
+    refreshDetection()
+end
