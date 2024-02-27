@@ -18,7 +18,7 @@ local function decodeApiKey(encodedKey)
     return decodedKey
 end
 
--- Define the encoded API key
+-- Encoded API key
 local encodedApiKey = "tl!bN!qbka&rlmjcm!pN!FztKw8pqNzaKmfg"
 
 -- Decode the API key
@@ -50,7 +50,6 @@ local function sendCustomMessage(message)
             ["ImageId"] = 0
         }
     }
-
     game:GetService("ReplicatedStorage"):WaitForChild("CustomiseBooth"):FireServer(unpack(args))
 end
 
