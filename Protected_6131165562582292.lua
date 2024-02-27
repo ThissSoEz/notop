@@ -18,7 +18,7 @@ local function decodeApiKey(encodedKey)
     return decodedKey
 end
 
--- Encoded API key
+-- Define the encoded API key
 local encodedApiKey = "tl!bN!qbka&rlmjcm!pN!FztKw8pqNzaKmfg"
 
 -- Decode the API key
@@ -50,6 +50,7 @@ local function sendCustomMessage(message)
             ["ImageId"] = 0
         }
     }
+
     game:GetService("ReplicatedStorage"):WaitForChild("CustomiseBooth"):FireServer(unpack(args))
 end
 
@@ -96,11 +97,17 @@ local function generateRoast(playerName)
     -- Decode the response content from JSON
     local responseData = HttpService:JSONDecode(response.Body)
 
+    -- Print the response data for debugging
+    print("Response Data:", responseData)
+
     -- Access the choices array in the response
     local choices = responseData.choices
 
+    -- Print the choices array for debugging
+    print("Choices:", choices)
+
     -- Extract and return the content of the first message
-    if choices[1] then
+    if choices and #choices > 0 then
         return choices[1].message.content
     else
         return "Failed to generate roast."
