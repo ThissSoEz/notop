@@ -40,21 +40,25 @@ local headers = {
 }
 
 -- Send the request and store the response
-local response = request({
-    Url = "https://api.openai.com/v1/chat/completions",
-    Method = "POST",
-    Headers = headers,
-    Body = bodyJson
-})
+local function roastRandomPlayer()
+    local response = request({
+        Url = "https://api.openai.com/v1/chat/completions",
+        Method = "POST",
+        Headers = headers,
+        Body = bodyJson
+    })
 
--- Decode the response content from JSON
-local responseData = HttpService:JSONDecode(response.Body)
+    -- Decode the response content from JSON
+    local responseData = HttpService:JSONDecode(response.Body)
 
--- Access the choices array in the response
-local choices = responseData.choices
+    -- Access the choices array in the response
+    local choices = responseData.choices
 
--- Get the roasted message
-local roastedMessage = choices[1].message.content
+    -- Get the roasted message
+    local roastedMessage = choices[1].message.content
 
--- Send the roasted message in the game chat
-game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastedMessage, "All")
+    -- Send the roasted message in the game chat
+    game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastedMessage, "All")
+end
+
+roastRandomPlayer() -- Call the function to roast a random player
