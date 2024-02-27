@@ -1,20 +1,27 @@
--- Simple encoding function
+-- Simple encoding and decoding system using a substitution cipher
 local function encodeApiKey(apiKey)
     local encodedKey = ""
     for i = 1, #apiKey do
-        encodedKey = encodedKey .. string.char(string.byte(apiKey, i) + 1)
+        local charCode = string.byte(apiKey, i)
+        encodedKey = encodedKey .. string.char(charCode + 1)
     end
     return encodedKey
 end
 
--- Simple decoding function
 local function decodeApiKey(encodedKey)
     local decodedKey = ""
     for i = 1, #encodedKey do
-        decodedKey = decodedKey .. string.char(string.byte(encodedKey, i) - 1)
+        local charCode = string.byte(encodedKey, i)
+        decodedKey = decodedKey .. string.char(charCode - 1)
     end
     return decodedKey
 end
+
+-- Define the encoded API key
+local encodedApiKey = "tl-UQckxphjM"
+
+-- Decode the API key
+local apiKey = decodeApiKey(encodedApiKey)
 
 -- Function to roast a player
 local function roastPlayer(playerName)
@@ -41,9 +48,6 @@ local function roastPlayer(playerName)
     -- Encode the body to JSON
     local HttpService = game:GetService("HttpService")
     local bodyJson = HttpService:JSONEncode(body)
-
-    -- Decode the encoded API key
-    local apiKey = decodeApiKey("tl!uQjp")
 
     -- Define the headers with the API key
     local headers = {
