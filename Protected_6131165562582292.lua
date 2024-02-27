@@ -51,14 +51,19 @@ local function roastRandomPlayer()
     -- Decode the response content from JSON
     local responseData = HttpService:JSONDecode(response.Body)
 
-    -- Access the choices array in the response
-    local choices = responseData.choices
+    -- Check if the choices array exists and is not empty
+    if responseData.choices and #responseData.choices > 0 then
+        -- Access the choices array in the response
+        local choices = responseData.choices
 
-    -- Get the roasted message
-    local roastedMessage = choices[1].message.content
+        -- Get the roasted message
+        local roastedMessage = choices[1].message.content
 
-    -- Send the roasted message in the game chat
-    game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastedMessage, "All")
+        -- Send the roasted message in the game chat
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastedMessage, "All")
+    else
+        warn("No response choices received from the OpenAI API.")
+    end
 end
 
 roastRandomPlayer() -- Call the function to roast a random player
