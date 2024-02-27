@@ -97,15 +97,20 @@ local function generateRoast(playerName)
     -- Decode the response content from JSON
     local responseData = HttpService:JSONDecode(response.Body)
 
-    -- Access the choices array in the response
-    local choices = responseData.choices
+    -- Ensure responseData is not nil
+    if responseData then
+        -- Access the choices array in the response
+        local choices = responseData.choices
 
-    -- Ensure choices is not nil and contains at least one item
-    if choices and #choices > 0 then
-        -- Extract and return the content of the first message
-        return choices[1].message.content
+        -- Ensure choices is not nil and contains at least one item
+        if choices and #choices > 0 then
+            -- Extract and return the content of the first message
+            return choices[1].message.content
+        else
+            return "Failed to generate roast: No choices found."
+        end
     else
-        return "Failed to generate roast."
+        return "Failed to generate roast: No response data."
     end
 end
 
