@@ -31,51 +31,40 @@ local function roastPlayer(playerName)
     }
 
     -- Send the request and store the response
-    local response = request({
-        Url = "https://api.openai.com/v1/chat/completions",
-        Method = "POST",
-        Headers = headers,
-        Body = bodyJson
-    })
+    local success, response = pcall(function()
+        return request({
+            Url = "https://api.openai.com/v1/chat/completions",
+            Method = "POST",
+            Headers = headers,
+            Body = bodyJson
+        })
+    end)
 
-    -- Decode the response content from JSON
-    local responseData = HttpService:JSONDecode(response.Body)
+    if success then
+        -- Decode the response content from JSON
+        local responseData = HttpService:JSONDecode(response.Body)
 
-    -- Access the choices array in the response
-    local choices = responseData.choices
+        -- Access the choices array in the response
+        local choices = responseData.choices
 
-    -- Construct the roast message
-    local roastMessage = ""
-    for _, choice in ipairs(choices) do
-        roastMessage = roastMessage .. choice.message.content .. " "
-    end
-
-    -- Send the roast message to the chat
-    game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastMessage, "All")
-end
-
--- Track the time of the last roast
-local lastRoastTime = 0
-
--- Function to roast players within the cooldown limit
-local function roastPlayersWithCooldown()
-    -- Check if enough time has passed since the last roast
-    if tick() - lastRoastTime >= 60 then
-        -- Reset the cooldown timer
-        lastRoastTime = tick()
-        
-        -- Roast up to 3 players
-        local players = game.Players:GetPlayers()
-        for i, player in ipairs(players) do
-            roastPlayer(player.Name)
-            if i >= 3 then
-                break
-            end
+        -- Construct the roast message
+        local roastMessage = ""
+        for _, choice in ipairs(choices) do
+            roastMessage = roastMessage .. choice.message.content .. " "
         end
+
+        -- Send the roast message to the chat
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(roastMessage, "All")
+    else
+        warn("Error roasting player:", response)
     end
 end
 
--- Roast players with cooldown every frame
-game:GetService("RunService").Heartbeat:Connect(function()
-    roastPlayersWithCooldown()
-end)
+-- Roast all players in the game with a cooldown
+local players = game:GetService("Players"):GetPlayers()
+local cooldown = 60
+for _, player in ipairs(players) do
+    roastPlayer(player.Name)
+    wait(15)  -- Wait 3 seconds before roasting the next player
+end
+wait(cooldown)  -- Wait for the cooldown period before roasting again
