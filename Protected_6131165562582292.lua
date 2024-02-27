@@ -43,7 +43,7 @@ local function roastPlayer(playerName)
     local bodyJson = HttpService:JSONEncode(body)
 
     -- Decode the encoded API key
-    local apiKey = decodeApiKey("uif!bdl")
+    local apiKey = decodeApiKey("tl!uQjp")
 
     -- Define the headers with the API key
     local headers = {
